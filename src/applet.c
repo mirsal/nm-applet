@@ -483,6 +483,7 @@ applet_new_menu_item_helper (NMConnection *connection,
 static gboolean
 menu_title_item_expose (GtkWidget *widget, GdkEventExpose *event)
 {
+	GtkAllocation allocation;
 	GtkStyle *style;
 	GtkWidget *label;
 	PangoFontDescription *desc;
@@ -497,7 +498,7 @@ menu_title_item_expose (GtkWidget *widget, GdkEventExpose *event)
 
 	label = gtk_bin_get_child (GTK_BIN (widget));
 
-	cr = gdk_cairo_create (widget->window);
+	cr = gdk_cairo_create (gtk_widget_get_window (widget));
 
 	/* The drawing area we get is the whole menu; clip the drawing to the
 	 * event area, which should just be our menu item.
@@ -510,7 +511,8 @@ menu_title_item_expose (GtkWidget *widget, GdkEventExpose *event)
 	/* We also need to reposition the cairo context so that (0, 0) is the
 	 * top-left of where we're supposed to start drawing.
 	 */
-	cairo_translate (cr, widget->allocation.x, widget->allocation.y);
+	gtk_widget_get_allocation (widget, &allocation);
+	cairo_translate (cr, allocation.x, allocation.y);
 
 	text = gtk_label_get_text (GTK_LABEL (label));
 
@@ -2886,9 +2888,10 @@ applet_pre_keyring_callback (gpointer user_data)
 	NMApplet *applet = NM_APPLET (user_data);
 	GdkScreen *screen;
 	GdkDisplay *display;
+	GdkWindow *window;
 
-	if (applet->menu && applet->menu->window) {
-		screen = gdk_drawable_get_screen (applet->menu->window);
+	if (applet->menu && (window = gtk_widget_get_window (applet->menu))) {
+		screen = gdk_drawable_get_screen (window);
 		display = gdk_screen_get_display (screen);
 		g_object_ref (display);
 
@@ -2905,8 +2908,8 @@ applet_pre_keyring_callback (gpointer user_data)
 		g_object_unref (display);
 	}
 
-	if (applet->context_menu && applet->context_menu->window) {
-		screen = gdk_drawable_get_screen (applet->context_menu->window);
+	if (applet->context_menu && (window = gtk_widget_get_window (applet->context_menu))) {
+		screen = gdk_drawable_get_screen (window);
 		display = gdk_screen_get_display (screen);
 		g_object_ref (display);
 
